@@ -15,7 +15,7 @@ export function BottomNav({ activeScreen, onNavigate, onOpenAI }: BottomNavProps
     { id: 'home', label: 'Home', icon: Home },
     { id: 'workouts', label: 'Workouts', icon: Dumbbell },
     { id: 'ai-chat', label: 'AI', icon: Sparkles, isCenter: true },
-    { id: 'motion-detect', label: 'Detect', icon: Camera },
+    // { id: 'motion-detect', label: 'Detect', icon: Camera },
     { id: 'progress', label: 'Progress', icon: TrendingUp },
     { id: 'profile', label: 'Profile', icon: User },
   ];

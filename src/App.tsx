@@ -97,7 +97,7 @@ export default function App() {
   };
 
   const handleOpenMotionDetect = () => {
-    setCurrentScreen("motion-detect");   // 或者打开你的侦测页面
+    setCurrentScreen("motion-detect");   
   };
 
   // Screen groups for bottom navigation visibility

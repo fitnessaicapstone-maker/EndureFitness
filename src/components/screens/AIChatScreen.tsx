@@ -15,9 +15,8 @@ interface Message {
 
 // ================== Fitness AI 系统提示 ==================
 const SYSTEM_PROMPT = `
-You are "Fitness AI Coach", a professional personal trainer.
+You are "Endure AI Coach", a professional personal trainer.
 
-YOU MUST SPEAK ENGLISH TO ME. IMPORTANT!!!
 
 Your focus:
 1. Create effective and safe workout plans.
