@@ -156,8 +156,10 @@ export function AIChatScreen({ onNavigate }: AIChatScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0d1a] via-[#1a1d2e] to-[#0f1220] relative overflow-hidden flex flex-col">
-      {/* Ambient background effects */}
+    // <div className="min-h-screen bg-gradient-to-br from-[#0a0d1a] via-[#1a1d2e] to-[#0f1220] relative overflow-hidden flex flex-col">
+    <div className="min-h-screen w-full overflow-hidden bg-gradient-to-br from-[#0a0d1a] via-[#1a1d2e] to-[#0f1220] relative flex flex-col">
+  
+    {/* Ambient background effects */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-[#92B8FF]/10 rounded-full blur-3xl" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#9470DC]/10 rounded-full blur-3xl" />
 

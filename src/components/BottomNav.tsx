@@ -5,17 +5,17 @@ import { motion } from 'motion/react';
 interface BottomNavProps {
   activeScreen: string;
   onNavigate: (screen: string) => void;
-  onOpenAI: () => void;
+  // onOpenAI: () => void;
   onOpenMotionDetect: () => void;
 }
 
-export function BottomNav({ activeScreen, onNavigate, onOpenAI }: BottomNavProps) {
+export function BottomNav({ activeScreen, onNavigate, /*onOpenAI,*/ onOpenMotionDetect }: BottomNavProps) {
   // Main navigation items with icons
   const navItems = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'workouts', label: 'Workouts', icon: Dumbbell },
     { id: 'ai-chat', label: 'AI', icon: Sparkles, isCenter: true },
-    // { id: 'motion-detect', label: 'Detect', icon: Camera },
+    { id: 'motion-detect', label: 'Detect', icon: Camera },
     { id: 'progress', label: 'Progress', icon: TrendingUp },
     { id: 'profile', label: 'Profile', icon: User },
   ];
@@ -32,7 +32,11 @@ export function BottomNav({ activeScreen, onNavigate, onOpenAI }: BottomNavProps
             return (
               <button
                 key={item.id}
-                onClick={() => onNavigate(item.id)}
+                onClick={() => {
+                  if (item.id === 'ai-chat') return onNavigate('ai-chat');
+                  if (item.id === 'motion-detect') return onOpenMotionDetect?.();
+                  return onNavigate(item.id);
+                }}
                 className="flex-1 flex flex-col items-center gap-1 relative py-[3px] px-[0px]"
               >
                 {/* Animated gradient background for active item */}
