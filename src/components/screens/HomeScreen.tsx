@@ -24,13 +24,13 @@ import {
 interface HomeScreenProps {
   userName: string;
   onNavigate: (screen: string) => void;
-  onOpenAI: () => void;
+  // onOpenAI: () => void;
 }
 
 export function HomeScreen({
   userName,
   onNavigate,
-  onOpenAI,
+  // onOpenAI,
 }: HomeScreenProps) {
   const [progressView, setProgressView] = useState<
     "weekly" | "monthly"

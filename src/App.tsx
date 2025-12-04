@@ -57,14 +57,14 @@ import { MotionDetectScreen } from "./components/screens/MotionDetectScreen";
 
 // Layout components
 import { BottomNav } from "./components/BottomNav";
-import { AIOverlay } from "./components/AIOverlay";
+// import { AIOverlay } from "./components/AIOverlay";
 
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<string>("splash");
   const [userName, setUserName] = useState("");
   const [gender, setGender] = useState("");
-  const [showAIOverlay, setShowAIOverlay] = useState(false);
+  // const [showAIOverlay, setShowAIOverlay] = useState(false);
   const [hasCompletedSetup, setHasCompletedSetup] = useState(false);
   const [currentWorkoutId, setCurrentWorkoutId] = useState<string | undefined>();
   
@@ -139,7 +139,7 @@ export default function App() {
           <HomeScreen
             userName={userName}
             onNavigate={handleNavigate}
-            onOpenAI={() => setShowAIOverlay(true)}
+            // onOpenAI={() => setShowAIOverlay(true)}
           />
         );
       case "notifications":
@@ -233,7 +233,7 @@ export default function App() {
           <HomeScreen
             userName={userName}
             onNavigate={handleNavigate}
-            onOpenAI={() => setShowAIOverlay(true)}
+            // onOpenAI={() => setShowAIOverlay(true)}
           />
         );
     }
@@ -246,16 +246,18 @@ export default function App() {
         <BottomNav
           activeScreen={currentScreen}
           onNavigate={handleNavigate}
-          onOpenAI={() => setShowAIOverlay(true)}
+          // onOpenAI={() => setShowAIOverlay(true)}
           onOpenMotionDetect={handleOpenMotionDetect}
         />
       )}
+      {/*  
       {showAIOverlay && (
         <AIOverlay
           onClose={() => setShowAIOverlay(false)}
           currentScreen={currentScreen}
         />
       )}
+      */}
     </div>
   );
 }
