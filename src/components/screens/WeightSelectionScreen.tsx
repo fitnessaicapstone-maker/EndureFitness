@@ -4,9 +4,10 @@ import { ProgressDots } from '../ProgressDots';
 
 interface WeightSelectionScreenProps {
   onNavigate: (screen: string) => void;
+  onSetWeight: (weight: number) => void;
 }
 
-export function WeightSelectionScreen({ onNavigate }: WeightSelectionScreenProps) {
+export function WeightSelectionScreen({ onNavigate, onSetWeight }: WeightSelectionScreenProps) {
   const [unit, setUnit] = useState<'KG' | 'LBS'>('KG');
   const [selectedWeight, setSelectedWeight] = useState(70);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -216,7 +217,10 @@ export function WeightSelectionScreen({ onNavigate }: WeightSelectionScreenProps
 
         {/* Continue Button */}
         <button
-          onClick={() => onNavigate('height')}
+          onClick={() => {
+            onSetWeight(unit === 'KG' ? selectedWeight : Math.round(selectedWeight * 0.453592));
+            onNavigate('height');
+          }}
           className="w-full py-3.5 rounded-xl bg-[#92B8FF] hover:bg-[#AECEFF] 
                    text-white transition-all duration-300
                    shadow-lg shadow-[#92B8FF]/20 backdrop-blur-xl"

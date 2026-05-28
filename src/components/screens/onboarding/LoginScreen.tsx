@@ -1,13 +1,33 @@
 import { useState } from 'react';
 import endureLogo from 'figma:asset/ae8528a70c61b154e099d5cf52318180871d2341.png';
+import { loginUser, type UserData } from '../../../lib/userStorage';
 
 interface LoginScreenProps {
   onNavigate: (screen: string) => void;
+  onLogin: (userData: UserData) => void;
 }
 
-export function LoginScreen({ onNavigate }: LoginScreenProps) {
+export function LoginScreen({ onNavigate, onLogin }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleLogin = () => {
+    if (!email.trim() || !password) {
+      setError('Email and password are required.');
+      return;
+    }
+
+    const signedInUser = loginUser(email, password);
+
+    if (!signedInUser) {
+      setError('Email or password is incorrect.');
+      return;
+    }
+
+    onLogin(signedInUser);
+    onNavigate('home');
+  };
 
   return (
     <div className="h-screen flex flex-col px-8 py-8 bg-[#1a1d2e] relative overflow-hidden">
@@ -34,7 +54,10 @@ export function LoginScreen({ onNavigate }: LoginScreenProps) {
                 type="email"
                 placeholder="Email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError('');
+                }}
                 className="w-full px-5 py-3 rounded-2xl bg-white/5 border border-white/10 
                          text-white placeholder:text-white/40 backdrop-blur-xl
                          focus:outline-none focus:ring-2 focus:ring-[#92B8FF] focus:border-transparent
@@ -48,7 +71,10 @@ export function LoginScreen({ onNavigate }: LoginScreenProps) {
                 type="password"
                 placeholder="Password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError('');
+                }}
                 className="w-full px-5 py-3 rounded-2xl bg-white/5 border border-white/10 
                          text-white placeholder:text-white/40 backdrop-blur-xl
                          focus:outline-none focus:ring-2 focus:ring-[#92B8FF] focus:border-transparent
@@ -56,9 +82,11 @@ export function LoginScreen({ onNavigate }: LoginScreenProps) {
               />
             </div>
 
+            {error && <p className="text-sm text-red-300">{error}</p>}
+
             {/* Primary login button */}
             <button
-              onClick={() => onNavigate('home')}
+              onClick={handleLogin}
               className="w-full py-3 rounded-2xl bg-[#92B8FF] hover:bg-[#AECEFF] 
                        text-white transition-all duration-300
                        shadow-lg shadow-[#92B8FF]/20 backdrop-blur-xl"
@@ -68,30 +96,8 @@ export function LoginScreen({ onNavigate }: LoginScreenProps) {
           </div>
         </div>
 
-        {/* Alternative authentication methods and signup link */}
+        {/* Sign up navigation */}
         <div className="pb-8">
-          {/* Social login options */}
-          <div className="space-y-3 mb-4">
-            <button
-              onClick={() => onNavigate('goal')}
-              className="w-full py-3 rounded-2xl bg-white/10 hover:bg-white/15 
-                       text-white backdrop-blur-xl border border-white/10
-                       transition-all duration-300"
-            >
-              Continue with Google
-            </button>
-
-            <button
-              onClick={() => onNavigate('goal')}
-              className="w-full py-3 rounded-2xl bg-[#9470DC] hover:bg-[#A586E4] 
-                       text-white transition-all duration-300
-                       shadow-lg shadow-[#9470DC]/20 backdrop-blur-xl"
-            >
-              Continue with Apple
-            </button>
-          </div>
-
-          {/* Sign up navigation */}
           <div className="text-center">
             <span className="text-white/60 text-sm">Don't have an account? </span>
             <button

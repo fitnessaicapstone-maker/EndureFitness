@@ -1,21 +1,64 @@
 import { useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import endureLogo from 'figma:asset/ae8528a70c61b154e099d5cf52318180871d2341.png';
+import type { NewUserData } from '../../../lib/userStorage';
+
+const MIN_PASSWORD_LENGTH = 8;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface SignupScreenProps {
   onNavigate: (screen: string) => void;
-  onSetName?: (name: string) => void;
+  onSaveUser: (userData: NewUserData) => void;
 }
 
-export function SignupScreen({ onNavigate, onSetName }: SignupScreenProps) {
+export function SignupScreen({ onNavigate, onSaveUser }: SignupScreenProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
+
+  const validateSignup = () => {
+    const nextErrors = {
+      name: '',
+      email: '',
+      password: '',
+    };
+
+    if (!name.trim()) {
+      nextErrors.name = 'Name is required.';
+    }
+
+    if (!email.trim()) {
+      nextErrors.email = 'Email is required.';
+    } else if (!EMAIL_PATTERN.test(email.trim())) {
+      nextErrors.email = 'Enter a valid email address.';
+    }
+
+    if (!password) {
+      nextErrors.password = 'Password is required.';
+    } else if (password.length < MIN_PASSWORD_LENGTH) {
+      nextErrors.password = `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
+    }
+
+    setErrors(nextErrors);
+
+    return !nextErrors.name && !nextErrors.email && !nextErrors.password;
+  };
 
   const handleSignUp = () => {
-    if (onSetName && name) {
-      onSetName(name);
+    if (!validateSignup()) {
+      return;
     }
+
+    onSaveUser({
+      name: name.trim(),
+      email: email.trim(),
+      password,
+    });
     onNavigate('goal');
   };
 
@@ -57,12 +100,17 @@ export function SignupScreen({ onNavigate, onSetName }: SignupScreenProps) {
                 type="text"
                 placeholder="Full Name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setErrors((currentErrors) => ({ ...currentErrors, name: '' }));
+                }}
+                aria-invalid={Boolean(errors.name)}
                 className="w-full px-5 py-3 rounded-2xl bg-white/5 border border-white/10 
                          text-white placeholder:text-white/40 backdrop-blur-xl
                          focus:outline-none focus:ring-2 focus:ring-[#92B8FF] focus:border-transparent
                          transition-all duration-200"
               />
+              {errors.name && <p className="mt-2 text-sm text-red-300">{errors.name}</p>}
             </div>
 
             {/* Email input field */}
@@ -71,12 +119,17 @@ export function SignupScreen({ onNavigate, onSetName }: SignupScreenProps) {
                 type="email"
                 placeholder="Email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrors((currentErrors) => ({ ...currentErrors, email: '' }));
+                }}
+                aria-invalid={Boolean(errors.email)}
                 className="w-full px-5 py-3 rounded-2xl bg-white/5 border border-white/10 
                          text-white placeholder:text-white/40 backdrop-blur-xl
                          focus:outline-none focus:ring-2 focus:ring-[#92B8FF] focus:border-transparent
                          transition-all duration-200"
               />
+              {errors.email && <p className="mt-2 text-sm text-red-300">{errors.email}</p>}
             </div>
 
             {/* Password input field */}
@@ -85,22 +138,25 @@ export function SignupScreen({ onNavigate, onSetName }: SignupScreenProps) {
                 type="password"
                 placeholder="Password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrors((currentErrors) => ({ ...currentErrors, password: '' }));
+                }}
+                aria-invalid={Boolean(errors.password)}
                 className="w-full px-5 py-3 rounded-2xl bg-white/5 border border-white/10 
                          text-white placeholder:text-white/40 backdrop-blur-xl
                          focus:outline-none focus:ring-2 focus:ring-[#92B8FF] focus:border-transparent
                          transition-all duration-200"
               />
+              {errors.password && <p className="mt-2 text-sm text-red-300">{errors.password}</p>}
             </div>
 
             {/* Submit button - disabled until all fields filled */}
             <button
               onClick={handleSignUp}
-              disabled={!name || !email || !password}
               className="w-full py-3 rounded-2xl bg-[#92B8FF] hover:bg-[#AECEFF] 
                        text-white transition-all duration-300
-                       shadow-lg shadow-[#92B8FF]/20 backdrop-blur-xl
-                       disabled:opacity-50 disabled:cursor-not-allowed"
+                       shadow-lg shadow-[#92B8FF]/20 backdrop-blur-xl"
             >
               Sign Up
             </button>

@@ -4,10 +4,12 @@ import { ProgressDots } from "../ProgressDots";
 
 interface HeightSelectionScreenProps {
   onNavigate: (screen: string) => void;
+  onSetHeight: (height: number) => void;
 }
 
 export function HeightSelectionScreen({
   onNavigate,
+  onSetHeight,
 }: HeightSelectionScreenProps) {
   const [unit, setUnit] = useState<"CM" | "FT/IN">("CM");
   const [selectedHeight, setSelectedHeight] = useState(175);
@@ -215,7 +217,10 @@ export function HeightSelectionScreen({
 
         {/* Next Button */}
         <button
-          onClick={() => onNavigate("loading-splash")}
+          onClick={() => {
+            onSetHeight(unit === "CM" ? selectedHeight : Math.round(selectedHeight * 2.54));
+            onNavigate("loading-splash");
+          }}
           className="w-full py-3.5 rounded-xl bg-[#92B8FF] hover:bg-[#AECEFF] 
                    text-white transition-all duration-300
                    shadow-lg shadow-[#92B8FF]/20 backdrop-blur-xl"

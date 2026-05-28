@@ -58,14 +58,31 @@ import { MotionDetectScreen } from "./components/screens/MotionDetectScreen";
 // Layout components
 import { BottomNav } from "./components/BottomNav";
 // import { AIOverlay } from "./components/AIOverlay";
+import {
+  clearUserData,
+  loadUserData,
+  saveUserData,
+  updateUserData,
+  type NewUserData,
+  type UserData,
+} from "./lib/userStorage";
 
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<string>("splash");
-  const [userName, setUserName] = useState("");
-  const [gender, setGender] = useState("");
+  const [userData, setUserData] = useState<UserData | null>(() => loadUserData());
+  const [currentScreen, setCurrentScreen] = useState<string>(() =>
+    userData ? "home" : "splash"
+  );
+  const [userName, setUserName] = useState(() => userData?.name ?? "");
+  const [userEmail, setUserEmail] = useState(() => userData?.email ?? "");
+  const [gender, setGender] = useState(() => userData?.gender ?? "");
+  const [age, setAge] = useState<number | undefined>(() => userData?.age);
+  const [height, setHeight] = useState<number | undefined>(() => userData?.height);
+  const [weight, setWeight] = useState<number | undefined>(() => userData?.weight);
   // const [showAIOverlay, setShowAIOverlay] = useState(false);
-  const [hasCompletedSetup, setHasCompletedSetup] = useState(false);
+  const [hasCompletedSetup, setHasCompletedSetup] = useState(
+    () => userData?.hasCompletedSetup ?? false
+  );
   const [currentWorkoutId, setCurrentWorkoutId] = useState<string | undefined>();
   
 
@@ -73,7 +90,7 @@ export default function App() {
   useEffect(() => {
     if (currentScreen === "splash") {
       const timer = setTimeout(() => {
-        if (hasCompletedSetup) {
+        if (userData || hasCompletedSetup) {
           setCurrentScreen("home");
         } else {
           setCurrentScreen("splash-with-button");
@@ -81,7 +98,7 @@ export default function App() {
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [currentScreen, hasCompletedSetup]);
+  }, [currentScreen, hasCompletedSetup, userData]);
 
   const handleNavigate = (screen: string, workoutId?: string) => {
     setCurrentScreen(screen);
@@ -89,11 +106,119 @@ export default function App() {
     // Mark setup as complete when user reaches home
     if (screen === "home" && !hasCompletedSetup) {
       setHasCompletedSetup(true);
+      setUserData((currentUser) => {
+        if (!currentUser) {
+          return currentUser;
+        }
+
+        return updateUserData({ hasCompletedSetup: true }) ?? {
+          ...currentUser,
+          hasCompletedSetup: true,
+        };
+      });
     }
   };
 
   const handleSetGender = (newGender: string) => {
     setGender(newGender);
+    setUserData((currentUser) => {
+      if (!currentUser) {
+        return currentUser;
+      }
+
+      return updateUserData({ gender: newGender }) ?? {
+        ...currentUser,
+        gender: newGender,
+      };
+    });
+  };
+
+  const handleSetAge = (newAge: number) => {
+    setAge(newAge);
+    setUserData((currentUser) => {
+      if (!currentUser) {
+        return currentUser;
+      }
+
+      return updateUserData({ age: newAge }) ?? {
+        ...currentUser,
+        age: newAge,
+      };
+    });
+  };
+
+  const handleSetHeight = (newHeight: number) => {
+    setHeight(newHeight);
+    setUserData((currentUser) => {
+      if (!currentUser) {
+        return currentUser;
+      }
+
+      return updateUserData({ height: newHeight }) ?? {
+        ...currentUser,
+        height: newHeight,
+      };
+    });
+  };
+
+  const handleSetWeight = (newWeight: number) => {
+    setWeight(newWeight);
+    setUserData((currentUser) => {
+      if (!currentUser) {
+        return currentUser;
+      }
+
+      return updateUserData({ weight: newWeight }) ?? {
+        ...currentUser,
+        weight: newWeight,
+      };
+    });
+  };
+
+  const handleSaveBodyMetrics = (updates: { gender: string; height: number; weight: number }) => {
+    setGender(updates.gender);
+    setHeight(updates.height);
+    setWeight(updates.weight);
+    setUserData((currentUser) => {
+      if (!currentUser) {
+        return currentUser;
+      }
+
+      return updateUserData(updates) ?? {
+        ...currentUser,
+        ...updates,
+      };
+    });
+  };
+
+  const handleSetActiveUser = (activeUser: UserData) => {
+    setUserData(activeUser);
+    setUserName(activeUser.name);
+    setUserEmail(activeUser.email);
+    setGender(activeUser.gender ?? "");
+    setAge(activeUser.age);
+    setHeight(activeUser.height);
+    setWeight(activeUser.weight);
+    setHasCompletedSetup(activeUser.hasCompletedSetup);
+  };
+
+  const handleSaveUser = (newUserData: NewUserData) => {
+    const savedUser = saveUserData(newUserData);
+    handleSetActiveUser(savedUser);
+  };
+
+  const handleLogout = () => {
+    clearUserData();
+    setUserData(null);
+    setUserName("");
+    setUserEmail("");
+    setGender("");
+    setAge(undefined);
+    setHeight(undefined);
+    setWeight(undefined);
+    setHasCompletedSetup(false);
+    setCurrentWorkoutId(undefined);
+    setCurrentScreen("login");
   };
 
   const handleOpenMotionDetect = () => {
@@ -115,19 +240,19 @@ export default function App() {
       case "splash-with-button":
         return <SplashScreen onNavigate={handleNavigate} showButton />;
       case "login":
-        return <LoginScreen onNavigate={handleNavigate} />;
+        return <LoginScreen onNavigate={handleNavigate} onLogin={handleSetActiveUser} />;
       case "signup":
-        return <SignupScreen onNavigate={handleNavigate} onSetName={setUserName} />;
+        return <SignupScreen onNavigate={handleNavigate} onSaveUser={handleSaveUser} />;
       case "goal":
         return <GoalSelectionScreen onNavigate={handleNavigate} />;
       case "gender":
         return <GenderSelectionScreen onNavigate={handleNavigate} onSetGender={handleSetGender} />;
       case "age":
-        return <AgeSelectionScreen onNavigate={handleNavigate} />;
+        return <AgeSelectionScreen onNavigate={handleNavigate} onSetAge={handleSetAge} />;
       case "weight":
-        return <WeightSelectionScreen onNavigate={handleNavigate} />;
+        return <WeightSelectionScreen onNavigate={handleNavigate} onSetWeight={handleSetWeight} />;
       case "height":
-        return <HeightSelectionScreen onNavigate={handleNavigate} />;
+        return <HeightSelectionScreen onNavigate={handleNavigate} onSetHeight={handleSetHeight} />;
       case "loading-splash":
         return <LoadingSplashScreen onNavigate={handleNavigate} />;
       case "tour":
@@ -150,9 +275,14 @@ export default function App() {
         return (
           <ProfileScreen
             userName={userName}
+            userEmail={userEmail}
             gender={gender}
+            age={age}
+            height={height}
+            weight={weight}
             onNavigate={handleNavigate}
             onSetGender={handleSetGender}
+            onLogout={handleLogout}
           />
         );
       case "edit-profile":
@@ -166,7 +296,10 @@ export default function App() {
           <BodyMetricsEditScreen
             onNavigate={handleNavigate}
             gender={gender}
+            height={height}
+            weight={weight}
             onSetGender={handleSetGender}
+            onSaveMetrics={handleSaveBodyMetrics}
           />
         );
 

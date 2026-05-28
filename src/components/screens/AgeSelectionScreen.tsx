@@ -4,10 +4,12 @@ import { ProgressDots } from "../ProgressDots";
 
 interface AgeSelectionScreenProps {
   onNavigate: (screen: string) => void;
+  onSetAge: (age: number) => void;
 }
 
 export function AgeSelectionScreen({
   onNavigate,
+  onSetAge,
 }: AgeSelectionScreenProps) {
   const [selectedAge, setSelectedAge] = useState(25);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -170,7 +172,10 @@ export function AgeSelectionScreen({
 
         {/* Continue Button */}
         <button
-          onClick={() => onNavigate("weight")}
+          onClick={() => {
+            onSetAge(selectedAge);
+            onNavigate("weight");
+          }}
           className="w-full py-3.5 rounded-xl bg-[#92B8FF] hover:bg-[#AECEFF] 
                    text-white transition-all duration-300
                    shadow-lg shadow-[#92B8FF]/20 backdrop-blur-xl"

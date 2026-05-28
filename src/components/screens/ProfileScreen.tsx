@@ -1,25 +1,28 @@
 import { Settings, Ruler, CreditCard, LogOut, HelpCircle, Accessibility, Info, Edit } from 'lucide-react';
-import { useState } from 'react';
 
 interface ProfileScreenProps {
   userName: string;
+  userEmail: string;
   gender: string;
   age?: number;
   height?: number;
   weight?: number;
   onNavigate: (screen: string) => void;
   onSetGender: (gender: string) => void;
+  onLogout: () => void;
 }
 
 export function ProfileScreen({ 
   userName, 
+  userEmail,
   gender, 
-  age = 22,
-  height = 185,
-  weight = 80,
-  onNavigate 
+  age,
+  height,
+  weight,
+  onNavigate,
+  onLogout,
 }: ProfileScreenProps) {
-  const [isEditing, setIsEditing] = useState(false);
+  const displayGender = gender ? gender.charAt(0).toUpperCase() + gender.slice(1) : 'Not set';
 
   return (
     <div className="min-h-screen pb-24 bg-gradient-to-br from-[#0a0d1a] via-[#1a1d2e] to-[#0f1220] relative overflow-hidden">
@@ -38,7 +41,7 @@ export function ProfileScreen({
           </button>
           <h1 className="text-xl text-white">My Profile</h1>
           <button 
-            onClick={() => onNavigate('login')}
+            onClick={onLogout}
             className="p-2 rounded-lg bg-gradient-to-br from-[#92B8FF]/20 to-[#9470DC]/20 hover:from-[#92B8FF]/30 hover:to-[#9470DC]/30 backdrop-blur-xl border border-[#92B8FF]/30 transition-colors"
           >
             <LogOut className="w-5 h-5 text-[#92B8FF]" />
@@ -67,9 +70,8 @@ export function ProfileScreen({
 
             {/* Name & Contact Info */}
             <div className="text-center mb-8">
-              <h2 className="text-white text-2xl mb-2">{userName || 'Adam Kenway'}</h2>
-              <p className="text-white/60 text-sm mb-1">adam.kenway@gmail.com</p>
-              <p className="text-white/60 text-sm">+16102458921</p>
+              <h2 className="text-white text-2xl mb-2">{userName || 'Endure User'}</h2>
+              <p className="text-white/60 text-sm mb-1">{userEmail || 'No email saved'}</p>
             </div>
 
             {/* Stats Grid */}
@@ -77,25 +79,25 @@ export function ProfileScreen({
               {/* Gender */}
               <div className="text-center">
                 <p className="text-white/50 text-xs mb-2">Gender</p>
-                <p className="text-white">Male</p>
+                <p className="text-white">{displayGender}</p>
               </div>
 
               {/* Age */}
               <div className="text-center">
                 <p className="text-white/50 text-xs mb-2">Age</p>
-                <p className="text-white">22</p>
+                <p className="text-white">{age ?? 'Not set'}</p>
               </div>
 
               {/* Height */}
               <div className="text-center">
                 <p className="text-white/50 text-xs mb-2">Height</p>
-                <p className="text-white">185 cm</p>
+                <p className="text-white">{height ? `${height} cm` : 'Not set'}</p>
               </div>
 
               {/* Weight */}
               <div className="text-center">
                 <p className="text-white/50 text-xs mb-2">Weight</p>
-                <p className="text-white">80 kg</p>
+                <p className="text-white">{weight ? `${weight} kg` : 'Not set'}</p>
               </div>
             </div>
           </div>
