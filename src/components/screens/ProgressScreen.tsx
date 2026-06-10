@@ -1,40 +1,48 @@
 import { useState } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Sparkles, TrendingUp, TrendingDown, Camera } from 'lucide-react';
+import type { BodyMetricsData } from '../../lib/appDataStorage';
 
-export function ProgressScreen({ onNavigate }: { onNavigate?: (screen: string) => void }) {
+export function ProgressScreen({
+  onNavigate,
+  bodyMetrics,
+}: {
+  onNavigate?: (screen: string) => void;
+  bodyMetrics?: BodyMetricsData | null;
+}) {
   const [activeTab, setActiveTab] = useState<'today' | 'week' | 'month' | 'year' | 'alltime'>('today');
+  const currentWeight = bodyMetrics?.weight ?? 78;
 
   // Mock data for weight progress
   const weightData = {
     week: [
-      { day: 'Mon', weight: 79 },
-      { day: 'Tue', weight: 78.8 },
-      { day: 'Wed', weight: 78.5 },
-      { day: 'Thu', weight: 78.7 },
-      { day: 'Fri', weight: 78.3 },
-      { day: 'Sat', weight: 78.1 },
-      { day: 'Sun', weight: 78 },
+      { day: 'Mon', weight: currentWeight + 1 },
+      { day: 'Tue', weight: currentWeight + 0.8 },
+      { day: 'Wed', weight: currentWeight + 0.5 },
+      { day: 'Thu', weight: currentWeight + 0.7 },
+      { day: 'Fri', weight: currentWeight + 0.3 },
+      { day: 'Sat', weight: currentWeight + 0.1 },
+      { day: 'Sun', weight: currentWeight },
     ],
     month: [
-      { week: 'W1', weight: 80 },
-      { week: 'W2', weight: 79.5 },
-      { week: 'W3', weight: 79 },
-      { week: 'W4', weight: 78 },
+      { week: 'W1', weight: currentWeight + 2 },
+      { week: 'W2', weight: currentWeight + 1.5 },
+      { week: 'W3', weight: currentWeight + 1 },
+      { week: 'W4', weight: currentWeight },
     ],
     year: [
-      { month: 'Jan', weight: 85 },
-      { month: 'Feb', weight: 84 },
-      { month: 'Mar', weight: 83 },
-      { month: 'Apr', weight: 82 },
-      { month: 'May', weight: 81.5 },
-      { month: 'Jun', weight: 81 },
-      { month: 'Jul', weight: 80.5 },
-      { month: 'Aug', weight: 80 },
-      { month: 'Sep', weight: 79.5 },
-      { month: 'Oct', weight: 79 },
-      { month: 'Nov', weight: 78.5 },
-      { month: 'Dec', weight: 78 },
+      { month: 'Jan', weight: currentWeight + 7 },
+      { month: 'Feb', weight: currentWeight + 6 },
+      { month: 'Mar', weight: currentWeight + 5 },
+      { month: 'Apr', weight: currentWeight + 4 },
+      { month: 'May', weight: currentWeight + 3.5 },
+      { month: 'Jun', weight: currentWeight + 3 },
+      { month: 'Jul', weight: currentWeight + 2.5 },
+      { month: 'Aug', weight: currentWeight + 2 },
+      { month: 'Sep', weight: currentWeight + 1.5 },
+      { month: 'Oct', weight: currentWeight + 1 },
+      { month: 'Nov', weight: currentWeight + 0.5 },
+      { month: 'Dec', weight: currentWeight },
     ],
   };
 
@@ -181,6 +189,29 @@ export function ProgressScreen({ onNavigate }: { onNavigate?: (screen: string) =
                       <p className="text-white/60 text-xs mb-1">Calories</p>
                       <p className="text-2xl text-[#9470DC]">580</p>
                     </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Body Metrics */}
+              <div className="p-5 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10">
+                <h3 className="text-white mb-4">Current Body Metrics</h3>
+                <div className="grid grid-cols-4 gap-3">
+                  <div className="text-center">
+                    <p className="text-white/50 text-xs mb-1">Weight</p>
+                    <p className="text-[#92B8FF] text-sm">{bodyMetrics?.weight ? `${bodyMetrics.weight} kg` : 'Not set'}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-white/50 text-xs mb-1">Height</p>
+                    <p className="text-[#AECEFF] text-sm">{bodyMetrics?.height ? `${bodyMetrics.height} cm` : 'Not set'}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-white/50 text-xs mb-1">Waist</p>
+                    <p className="text-[#9470DC] text-sm">{bodyMetrics?.waist ? `${bodyMetrics.waist} cm` : 'Not set'}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-white/50 text-xs mb-1">Chest</p>
+                    <p className="text-[#B29AE8] text-sm">{bodyMetrics?.chest ? `${bodyMetrics.chest} cm` : 'Not set'}</p>
                   </div>
                 </div>
               </div>

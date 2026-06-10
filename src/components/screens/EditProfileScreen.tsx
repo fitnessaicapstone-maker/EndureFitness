@@ -1,28 +1,49 @@
 import { ChevronLeft, Camera } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState, type ChangeEvent } from 'react';
+import type { NewProfileData, ProfileData } from '../../lib/appDataStorage';
 
 interface EditProfileScreenProps {
   onNavigate: (screen: string) => void;
+  profile: ProfileData;
+  onSaveProfile: (profile: NewProfileData) => void;
 }
 
-export function EditProfileScreen({ onNavigate }: EditProfileScreenProps) {
+export function EditProfileScreen({ onNavigate, profile, onSaveProfile }: EditProfileScreenProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
-    name: 'Adam Kenway',
-    email: 'adam.kenway@gmail.com',
-    phone: '+16102458921',
+    name: profile.name,
+    email: profile.email,
+    phone: profile.phone ?? '',
   });
-
-  const [profileImage, setProfileImage] = useState('https://images.unsplash.com/photo-1758523672156-7a7b62d701f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhdHRyYWN0aXZlJTIwbWFuJTIwZmFjZSUyMGhlYWRzaG90fGVufDF8fHx8MTc2NDU0MjQ1Mnww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral');
+  const [profileImage, setProfileImage] = useState(profile.profileImage ?? '');
 
   const handleSave = () => {
-    // Save profile changes
+    onSaveProfile({
+      id: profile.id,
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      profileImage,
+    });
     onNavigate('profile');
   };
 
-  const handleImageChange = () => {
-    // In a real app, this would open file picker
-    // For demo, we'll just show a different image
-    alert('Profile picture change functionality');
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setProfileImage(reader.result);
+      }
+    };
+
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -48,12 +69,19 @@ export function EditProfileScreen({ onNavigate }: EditProfileScreenProps) {
           <div className="flex justify-center mb-6">
             <div className="relative">
               <img
-                src={profileImage}
+                src={profileImage || 'https://images.unsplash.com/photo-1672685667592-0392f458f46f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBtYW4lMjBwb3J0cmFpdCUyMGhlYWRzaG90fGVufDF8fHx8MTc2NDQ2MTQ0OHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral'}
                 alt="Profile"
                 className="w-32 h-32 rounded-3xl object-cover border-2 border-white/20"
               />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
               <button
-                onClick={handleImageChange}
+                onClick={() => fileInputRef.current?.click()}
                 className="absolute -bottom-2 -right-2 p-3 rounded-xl bg-[#92B8FF] shadow-lg shadow-[#92B8FF]/30 hover:bg-[#AECEFF] transition-colors"
               >
                 <Camera className="w-5 h-5 text-white" />

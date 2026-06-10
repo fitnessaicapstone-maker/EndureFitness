@@ -1,27 +1,75 @@
 import { useState } from 'react';
 import { ArrowLeft, Plus, X, GripVertical, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import type { NewWorkoutData, WorkoutData, WorkoutExerciseData } from '../../lib/appDataStorage';
 
 interface EditWorkoutScreenProps {
   onNavigate: (screen: string) => void;
   workoutId?: string;
+  workouts: WorkoutData[];
+  onSaveWorkout: (workout: NewWorkoutData) => void;
+  onDeleteWorkout: (workoutId: string) => void;
 }
 
-export function EditWorkoutScreen({ onNavigate, workoutId }: EditWorkoutScreenProps) {
-  const [workoutName, setWorkoutName] = useState('My Morning Routine');
-  const [exercises, setExercises] = useState([
+export function EditWorkoutScreen({
+  onNavigate,
+  workoutId,
+  workouts,
+  onSaveWorkout,
+  onDeleteWorkout,
+}: EditWorkoutScreenProps) {
+  const savedWorkout = workouts.find((workout) => workout.id === workoutId);
+  const fallbackExercises: WorkoutExerciseData[] = [
     { id: '1', name: 'Pull-ups', sets: 4, reps: 10, weight: 0 },
     { id: '2', name: 'Barbell Rows', sets: 4, reps: 12, weight: 135 },
     { id: '3', name: 'Lat Pulldowns', sets: 3, reps: 12, weight: 120 },
     { id: '4', name: 'Seated Cable Rows', sets: 3, reps: 12, weight: 110 },
-  ]);
+  ];
+  const [workoutName, setWorkoutName] = useState(savedWorkout?.name ?? 'My Morning Routine');
+  const [workoutNameError, setWorkoutNameError] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [exercises, setExercises] = useState<WorkoutExerciseData[]>(
+    savedWorkout?.exercises ?? fallbackExercises
+  );
 
   const handleRemoveExercise = (id: string) => {
     setExercises(exercises.filter(ex => ex.id !== id));
   };
 
+  const updateExerciseNumber = (
+    index: number,
+    field: 'sets' | 'reps' | 'weight',
+    value: string
+  ) => {
+    const updated = [...exercises];
+
+    updated[index] = {
+      ...updated[index],
+      [field]: value === '' ? 0 : Number(value),
+    };
+    setExercises(updated);
+  };
+
   const handleSave = () => {
-    alert('Workout saved!');
+    const trimmedName = workoutName.trim();
+
+    if (!trimmedName) {
+      setWorkoutNameError('Workout name is required.');
+      return;
+    }
+
+    onSaveWorkout({
+      id: savedWorkout?.id ?? workoutId ?? `user-${Date.now()}`,
+      name: trimmedName,
+      type: savedWorkout?.type ?? 'user',
+      exercises,
+      duration: `${Math.max(exercises.length * 8, 8)} min`,
+      calories: savedWorkout?.calories,
+      difficulty: savedWorkout?.difficulty ?? 'Custom',
+      lastEdited: 'Today',
+      restPeriods: savedWorkout?.restPeriods,
+      createdAt: savedWorkout?.createdAt,
+    });
     onNavigate('workouts');
   };
 
@@ -57,10 +105,16 @@ export function EditWorkoutScreen({ onNavigate, workoutId }: EditWorkoutScreenPr
           <input
             type="text"
             value={workoutName}
-            onChange={(e) => setWorkoutName(e.target.value)}
+            onChange={(e) => {
+              setWorkoutName(e.target.value);
+              setWorkoutNameError('');
+            }}
             className="w-full px-4 py-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 
                      text-white placeholder-white/40 focus:outline-none focus:border-[#92B8FF]/50 transition-all"
           />
+          {workoutNameError && (
+            <p className="text-red-300 text-sm mt-2">{workoutNameError}</p>
+          )}
         </div>
 
         {/* Exercises List */}
@@ -68,7 +122,7 @@ export function EditWorkoutScreen({ onNavigate, workoutId }: EditWorkoutScreenPr
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-white text-lg">Exercises</h2>
             <button
-              onClick={() => onNavigate('create-workout')}
+              onClick={() => onNavigate('create-workout', workoutId)}
               className="px-3 py-1.5 rounded-lg bg-white/5 backdrop-blur-xl border border-white/10 
                        text-white text-sm hover:bg-white/10 transition-all flex items-center gap-1"
             >
@@ -100,12 +154,9 @@ export function EditWorkoutScreen({ onNavigate, workoutId }: EditWorkoutScreenPr
                       <label className="text-white/40 text-xs block mb-1">Sets</label>
                       <input
                         type="number"
+                        min="0"
                         value={exercise.sets}
-                        onChange={(e) => {
-                          const updated = [...exercises];
-                          updated[index].sets = parseInt(e.target.value);
-                          setExercises(updated);
-                        }}
+                        onChange={(e) => updateExerciseNumber(index, 'sets', e.target.value)}
                         className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 
                                  text-white text-sm focus:outline-none focus:border-[#92B8FF]/50"
                       />
@@ -114,12 +165,9 @@ export function EditWorkoutScreen({ onNavigate, workoutId }: EditWorkoutScreenPr
                       <label className="text-white/40 text-xs block mb-1">Reps</label>
                       <input
                         type="number"
+                        min="0"
                         value={exercise.reps}
-                        onChange={(e) => {
-                          const updated = [...exercises];
-                          updated[index].reps = parseInt(e.target.value);
-                          setExercises(updated);
-                        }}
+                        onChange={(e) => updateExerciseNumber(index, 'reps', e.target.value)}
                         className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 
                                  text-white text-sm focus:outline-none focus:border-[#92B8FF]/50"
                       />
@@ -128,12 +176,9 @@ export function EditWorkoutScreen({ onNavigate, workoutId }: EditWorkoutScreenPr
                       <label className="text-white/40 text-xs block mb-1">Weight</label>
                       <input
                         type="number"
+                        min="0"
                         value={exercise.weight}
-                        onChange={(e) => {
-                          const updated = [...exercises];
-                          updated[index].weight = parseInt(e.target.value);
-                          setExercises(updated);
-                        }}
+                        onChange={(e) => updateExerciseNumber(index, 'weight', e.target.value)}
                         className="w-full px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 
                                  text-white text-sm focus:outline-none focus:border-[#92B8FF]/50"
                       />
@@ -157,11 +202,7 @@ export function EditWorkoutScreen({ onNavigate, workoutId }: EditWorkoutScreenPr
         {/* Delete Workout Button */}
         <div className="px-6">
           <button
-            onClick={() => {
-              if (confirm('Are you sure you want to delete this workout?')) {
-                onNavigate('workouts');
-              }
-            }}
+            onClick={() => setShowDeleteConfirm(true)}
             className="w-full py-3 rounded-2xl bg-red-500/10 border border-red-500/30 
                      text-red-400 hover:bg-red-500/20 transition-all"
           >
@@ -169,6 +210,45 @@ export function EditWorkoutScreen({ onNavigate, workoutId }: EditWorkoutScreenPr
           </button>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end">
+          <div className="w-full rounded-t-3xl bg-gradient-to-br from-[#1a1d2e] to-[#0f1220] border-t border-white/20 p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-white text-xl">Delete Workout?</h2>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
+            <p className="text-white/70 text-sm mb-6">
+              This will permanently remove "{workoutName || 'this workout'}" from My Workouts.
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  if (workoutId) {
+                    onDeleteWorkout(workoutId);
+                  }
+                  setShowDeleteConfirm(false);
+                  onNavigate('workouts');
+                }}
+                className="w-full py-4 rounded-2xl bg-red-500 text-white hover:bg-red-600 transition-all"
+              >
+                Delete Workout
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all"
+              >
+                Keep Workout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

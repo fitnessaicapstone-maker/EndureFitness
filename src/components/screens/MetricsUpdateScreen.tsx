@@ -1,16 +1,21 @@
 import { Droplet, Activity, Weight, Ruler, TrendingUp, TrendingDown } from 'lucide-react';
 import { motion } from 'motion/react';
+import type { BodyMetricsData } from '../../lib/appDataStorage';
 
 interface MetricsUpdateScreenProps {
   onNavigate: (screen: string) => void;
+  bodyMetrics?: BodyMetricsData | null;
 }
 
-export function MetricsUpdateScreen({ onNavigate }: MetricsUpdateScreenProps) {
+export function MetricsUpdateScreen({ onNavigate, bodyMetrics }: MetricsUpdateScreenProps) {
   const overallScore = 85;
   const bodyFat = 11.8;
   const muscleMass = 49.2;
-  const weight = 182.4;
-  const bmi = 24.7;
+  const weight = bodyMetrics?.weight;
+  const bmi =
+    bodyMetrics?.height && bodyMetrics?.weight
+      ? bodyMetrics.weight / Math.pow(bodyMetrics.height / 100, 2)
+      : undefined;
 
   // Calculate circle progress (out of 100)
   const circleProgress = overallScore;
@@ -176,8 +181,8 @@ export function MetricsUpdateScreen({ onNavigate }: MetricsUpdateScreenProps) {
                   <Weight className="w-5 h-5 text-[#92B8FF]" />
                 </div>
                 <p className="text-white/60 text-xs mb-1">Weight</p>
-                <p className="text-white text-xl">{weight}</p>
-                <p className="text-white/40 text-xs mt-1">lbs</p>
+                <p className="text-white text-xl">{weight ? weight.toFixed(1) : 'Not set'}</p>
+                <p className="text-white/40 text-xs mt-1">kg</p>
               </div>
             </div>
 
@@ -189,8 +194,8 @@ export function MetricsUpdateScreen({ onNavigate }: MetricsUpdateScreenProps) {
                   <Ruler className="w-5 h-5 text-[#AECEFF]" />
                 </div>
                 <p className="text-white/60 text-xs mb-1">BMI</p>
-                <p className="text-white text-xl">{bmi}</p>
-                <p className="text-white/40 text-xs mt-1">Normal</p>
+                <p className="text-white text-xl">{bmi ? bmi.toFixed(1) : 'Not set'}</p>
+                <p className="text-white/40 text-xs mt-1">{bmi ? 'Calculated' : 'Needs height and weight'}</p>
               </div>
             </div>
           </div>

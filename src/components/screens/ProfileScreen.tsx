@@ -3,6 +3,8 @@ import { Settings, Ruler, CreditCard, LogOut, HelpCircle, Accessibility, Info, E
 interface ProfileScreenProps {
   userName: string;
   userEmail: string;
+  userPhone: string;
+  profileImage: string;
   gender: string;
   age?: number;
   height?: number;
@@ -15,6 +17,8 @@ interface ProfileScreenProps {
 export function ProfileScreen({ 
   userName, 
   userEmail,
+  userPhone,
+  profileImage,
   gender, 
   age,
   height,
@@ -23,6 +27,7 @@ export function ProfileScreen({
   onLogout,
 }: ProfileScreenProps) {
   const displayGender = gender ? gender.charAt(0).toUpperCase() + gender.slice(1) : 'Not set';
+  const fallbackProfileImage = 'https://images.unsplash.com/photo-1672685667592-0392f458f46f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBtYW4lMjBwb3J0cmFpdCUyMGhlYWRzaG90fGVufDF8fHx8MTc2NDQ2MTQ0OHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral';
 
   return (
     <div className="min-h-screen pb-24 bg-gradient-to-br from-[#0a0d1a] via-[#1a1d2e] to-[#0f1220] relative overflow-hidden">
@@ -54,7 +59,7 @@ export function ProfileScreen({
             <div className="mb-4">
               <div className="relative">
                 <img
-                  src="https://images.unsplash.com/photo-1672685667592-0392f458f46f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBtYW4lMjBwb3J0cmFpdCUyMGhlYWRzaG90fGVufDF8fHx8MTc2NDQ2MTQ0OHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                  src={profileImage || fallbackProfileImage}
                   alt="Profile"
                   className="w-32 h-32 rounded-3xl object-cover border-2 border-white/20"
                 />
@@ -72,6 +77,7 @@ export function ProfileScreen({
             <div className="text-center mb-8">
               <h2 className="text-white text-2xl mb-2">{userName || 'Endure User'}</h2>
               <p className="text-white/60 text-sm mb-1">{userEmail || 'No email saved'}</p>
+              <p className="text-white/60 text-sm">{userPhone || 'No phone saved'}</p>
             </div>
 
             {/* Stats Grid */}

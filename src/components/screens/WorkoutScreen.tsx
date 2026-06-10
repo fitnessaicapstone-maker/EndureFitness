@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Search, History, ChevronDown, ChevronUp, Play, Edit, Plus, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import type { WorkoutData } from '../../lib/appDataStorage';
 
 interface WorkoutScreenProps {
   onNavigate: (screen: string, workoutId?: string) => void;
+  workouts: WorkoutData[];
 }
 
-export function WorkoutScreen({ onNavigate }: WorkoutScreenProps) {
+export function WorkoutScreen({ onNavigate, workouts }: WorkoutScreenProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedCollection, setExpandedCollection] = useState<string | null>(null);
 
@@ -43,11 +45,13 @@ export function WorkoutScreen({ onNavigate }: WorkoutScreenProps) {
   ];
 
   // User Created Workouts
-  const userWorkouts = [
-    { id: 'user-1', name: 'My Morning Routine', exercises: 6, duration: '35 min', lastEdited: 'Today' },
-    { id: 'user-2', name: 'Push Day', exercises: 8, duration: '50 min', lastEdited: '2 days ago' },
-    { id: 'user-3', name: 'Pull Day', exercises: 7, duration: '45 min', lastEdited: '3 days ago' },
-  ];
+  const userWorkouts = workouts.map((workout) => ({
+    id: workout.id,
+    name: workout.name,
+    exercises: workout.exercises.length,
+    duration: workout.duration ?? `${Math.max(workout.exercises.length * 8, 8)} min`,
+    lastEdited: workout.lastEdited ?? 'Today',
+  }));
 
   // Filter workouts based on search
   const filteredUserWorkouts = userWorkouts.filter(workout =>
@@ -189,9 +193,11 @@ export function WorkoutScreen({ onNavigate }: WorkoutScreenProps) {
             <h2 className="text-white text-xl">My Workouts</h2>
           </div>
 
-          {filteredUserWorkouts.length === 0 && searchQuery && (
+          {filteredUserWorkouts.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-white/40">No workouts found</p>
+              <p className="text-white/40">
+                {searchQuery ? 'No workouts found' : 'No saved workouts yet'}
+              </p>
             </div>
           )}
 
@@ -216,7 +222,7 @@ export function WorkoutScreen({ onNavigate }: WorkoutScreenProps) {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      onNavigate('create-workout', workout.id);
+                      onNavigate('edit-workout', workout.id);
                     }}
                     className="w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 
                              flex items-center justify-center transition-all"

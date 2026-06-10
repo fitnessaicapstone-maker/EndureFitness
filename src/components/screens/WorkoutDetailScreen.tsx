@@ -1,67 +1,55 @@
 import { useState } from 'react';
 import { ArrowLeft, Edit, Flame, Clock, Zap, Plus, X, Play } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import type { WorkoutData } from '../../lib/appDataStorage';
 
 interface WorkoutDetailScreenProps {
   onNavigate: (screen: string) => void;
   workoutId?: string;
+  workouts: WorkoutData[];
 }
 
-export function WorkoutDetailScreen({ onNavigate, workoutId }: WorkoutDetailScreenProps) {
+export function WorkoutDetailScreen({ onNavigate, workoutId, workouts }: WorkoutDetailScreenProps) {
   const [showAddRestPopup, setShowAddRestPopup] = useState(false);
   const [restDuration, setRestDuration] = useState(60);
-
-  // Mock workout data - in real app this would be fetched based on workoutId
-  const workoutDetails = {
-    name: workoutId === 'user-1' ? 'My Morning Routine' : 'Back Workout',
-    calories: 450,
-    totalTime: '45 min',
-    difficulty: 'Intermediate',
-    exercises: [
-      {
-        name: 'Pull-ups',
-        reps: 10,
-        sets: 4,
-        weight: 0,
-        estimatedTime: '8 min',
-      },
-      {
-        name: 'Barbell Rows',
-        reps: 12,
-        sets: 4,
-        weight: 135,
-        estimatedTime: '10 min',
-      },
-      {
-        name: 'Lat Pulldowns',
-        reps: 12,
-        sets: 3,
-        weight: 120,
-        estimatedTime: '8 min',
-      },
-      {
-        name: 'Seated Cable Rows',
-        reps: 12,
-        sets: 3,
-        weight: 110,
-        estimatedTime: '8 min',
-      },
-      {
-        name: 'Deadlifts',
-        reps: 8,
-        sets: 4,
-        weight: 225,
-        estimatedTime: '10 min',
-      },
-      {
-        name: 'Face Pulls',
-        reps: 15,
-        sets: 3,
-        weight: 40,
-        estimatedTime: '6 min',
-      },
-    ],
+  const savedWorkout = workouts.find((workout) => workout.id === workoutId);
+  const workoutDetails = savedWorkout && {
+    name: savedWorkout.name,
+    calories: savedWorkout.calories ?? Math.max(savedWorkout.exercises.length * 75, 75),
+    totalTime: savedWorkout.duration ?? `${Math.max(savedWorkout.exercises.length * 8, 8)} min`,
+    difficulty: savedWorkout.difficulty ?? 'Custom',
+    exercises: savedWorkout.exercises,
   };
+
+  if (!workoutDetails) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0d1a] via-[#1a1d2e] to-[#0f1220] relative overflow-hidden pb-24">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-[#92B8FF]/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#9470DC]/10 rounded-full blur-3xl" />
+        <div className="relative z-10 px-6 py-6">
+          <button
+            onClick={() => onNavigate('workouts')}
+            className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 
+                     flex items-center justify-center hover:bg-white/20 transition-all mb-8"
+          >
+            <ArrowLeft className="w-5 h-5 text-white" />
+          </button>
+          <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 text-center">
+            <h1 className="text-white text-2xl mb-3">Workout Unavailable</h1>
+            <p className="text-white/60 text-sm mb-6">
+              This workout is no longer available. Choose another workout from My Workouts.
+            </p>
+            <button
+              onClick={() => onNavigate('workouts')}
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#92B8FF] to-[#9470DC] text-white"
+            >
+              Back to Workouts
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0d1a] via-[#1a1d2e] to-[#0f1220] relative overflow-hidden pb-32">
@@ -163,7 +151,7 @@ export function WorkoutDetailScreen({ onNavigate, workoutId }: WorkoutDetailScre
                     </div>
                     <div>
                       <p className="text-white/60 mb-0.5">Weight</p>
-                      <p className="text-[#9470DC]">{exercise.weight ? `${exercise.weight} lbs` : 'Body'}</p>
+                      <p className="text-[#9470DC]">{exercise.weight ? `${exercise.weight} kg` : 'Body'}</p>
                     </div>
                   </div>
                 </div>

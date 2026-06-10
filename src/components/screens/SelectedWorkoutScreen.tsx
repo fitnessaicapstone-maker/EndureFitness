@@ -1,22 +1,79 @@
 import { useState } from 'react';
 import { ArrowLeft, Play, Check } from 'lucide-react';
 import { motion } from 'motion/react';
+import type { WorkoutData } from '../../lib/appDataStorage';
 
 interface SelectedWorkoutScreenProps {
-  onNavigate: (screen: string) => void;
+  onNavigate: (screen: string, workoutId?: string) => void;
+  workoutId?: string;
+  workouts: WorkoutData[];
 }
 
-export function SelectedWorkoutScreen({ onNavigate }: SelectedWorkoutScreenProps) {
+export function SelectedWorkoutScreen({ onNavigate, workoutId, workouts }: SelectedWorkoutScreenProps) {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [completedSets, setCompletedSets] = useState<{ [key: number]: number[] }>({});
-  
-  const exercises = [
-    { name: 'Bench Press', weight: 135, reps: 10, sets: 3 },
-    { name: 'Squats', weight: 185, reps: 12, sets: 4 },
-    { name: 'Deadlift', weight: 225, reps: 8, sets: 3 },
-    { name: 'Pull-ups', weight: 0, reps: 15, sets: 3 },
-    { name: 'Shoulder Press', weight: 95, reps: 10, sets: 3 },
-  ];
+  const selectedWorkout = workouts.find((workout) => workout.id === workoutId);
+  const exercises = selectedWorkout?.exercises ?? [];
+
+  if (!selectedWorkout) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0d1a] via-[#1a1d2e] to-[#0f1220] relative overflow-hidden pb-24">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-[#92B8FF]/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#9470DC]/10 rounded-full blur-3xl" />
+        <div className="relative z-10 px-6 py-6">
+          <button
+            onClick={() => onNavigate('workouts')}
+            className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 
+                     flex items-center justify-center hover:bg-white/20 transition-all mb-8"
+          >
+            <ArrowLeft className="w-5 h-5 text-white" />
+          </button>
+          <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 text-center">
+            <h1 className="text-white text-2xl mb-3">Workout Unavailable</h1>
+            <p className="text-white/60 text-sm mb-6">
+              This workout could not be loaded. Choose another workout from My Workouts.
+            </p>
+            <button
+              onClick={() => onNavigate('workouts')}
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#92B8FF] to-[#9470DC] text-white"
+            >
+              Back to Workouts
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (exercises.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#0a0d1a] via-[#1a1d2e] to-[#0f1220] relative overflow-hidden pb-24">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-[#92B8FF]/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#9470DC]/10 rounded-full blur-3xl" />
+        <div className="relative z-10 px-6 py-6">
+          <button
+            onClick={() => onNavigate('workout-detail', workoutId)}
+            className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 
+                     flex items-center justify-center hover:bg-white/20 transition-all mb-8"
+          >
+            <ArrowLeft className="w-5 h-5 text-white" />
+          </button>
+          <div className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 text-center">
+            <h1 className="text-white text-2xl mb-3">No Exercises Yet</h1>
+            <p className="text-white/60 text-sm mb-6">
+              Add exercises to {selectedWorkout.name} before starting this workout.
+            </p>
+            <button
+              onClick={() => onNavigate('create-workout', workoutId)}
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#92B8FF] to-[#9470DC] text-white"
+            >
+              Add Exercises
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const currentExercise = exercises[currentExerciseIndex];
   const totalExercises = exercises.length;
@@ -49,9 +106,7 @@ export function SelectedWorkoutScreen({ onNavigate }: SelectedWorkoutScreenProps
     if (currentExerciseIndex < totalExercises - 1) {
       setCurrentExerciseIndex(currentExerciseIndex + 1);
     } else {
-      // Workout complete
-      alert('Workout Complete!');
-      onNavigate('workouts');
+      onNavigate('workout-complete');
     }
   };
 
@@ -78,6 +133,7 @@ export function SelectedWorkoutScreen({ onNavigate }: SelectedWorkoutScreenProps
             <ArrowLeft className="w-5 h-5 text-white" />
           </button>
           <div className="text-center">
+            <p className="text-white text-sm mb-1">{selectedWorkout.name}</p>
             <p className="text-white/60 text-sm">Exercise {currentExerciseIndex + 1} of {totalExercises}</p>
           </div>
           <div className="w-10" /> {/* Spacer */}
@@ -119,7 +175,7 @@ export function SelectedWorkoutScreen({ onNavigate }: SelectedWorkoutScreenProps
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">
                   <p className="text-white/60 text-xs mb-1">Weight</p>
                   <p className="text-[#92B8FF] text-2xl">{currentExercise.weight || 'Body'}</p>
-                  <p className="text-white/40 text-xs mt-1">{currentExercise.weight ? 'lbs' : 'weight'}</p>
+                  <p className="text-white/40 text-xs mt-1">{currentExercise.weight ? 'kg' : 'weight'}</p>
                 </div>
 
                 <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-center">

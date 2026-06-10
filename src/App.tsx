@@ -66,6 +66,21 @@ import {
   type NewUserData,
   type UserData,
 } from "./lib/userStorage";
+import {
+  loadBodyMetricsData,
+  loadProfileData,
+  loadWorkoutList,
+  deleteWorkoutData,
+  saveProfileData,
+  saveBodyMetricsData,
+  saveWorkoutData,
+  type BodyMetricsData,
+  type NewBodyMetricsData,
+  type NewProfileData,
+  type NewWorkoutData,
+  type ProfileData,
+  type WorkoutData,
+} from "./lib/appDataStorage";
 
 
 export default function App() {
@@ -73,12 +88,16 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState<string>(() =>
     userData ? "home" : "splash"
   );
-  const [userName, setUserName] = useState(() => userData?.name ?? "");
-  const [userEmail, setUserEmail] = useState(() => userData?.email ?? "");
-  const [gender, setGender] = useState(() => userData?.gender ?? "");
+  const [userName, setUserName] = useState(() => loadProfileData()?.name ?? userData?.name ?? "");
+  const [userEmail, setUserEmail] = useState(() => loadProfileData()?.email ?? userData?.email ?? "");
+  const [userPhone, setUserPhone] = useState(() => loadProfileData()?.phone ?? "");
+  const [profileImage, setProfileImage] = useState(() => loadProfileData()?.profileImage ?? "");
+  const [bodyMetrics, setBodyMetrics] = useState<BodyMetricsData | null>(() => loadBodyMetricsData());
+  const [workouts, setWorkouts] = useState<WorkoutData[]>(() => loadWorkoutList());
+  const [gender, setGender] = useState(() => loadBodyMetricsData()?.gender ?? userData?.gender ?? "");
   const [age, setAge] = useState<number | undefined>(() => userData?.age);
-  const [height, setHeight] = useState<number | undefined>(() => userData?.height);
-  const [weight, setWeight] = useState<number | undefined>(() => userData?.weight);
+  const [height, setHeight] = useState<number | undefined>(() => loadBodyMetricsData()?.height ?? userData?.height);
+  const [weight, setWeight] = useState<number | undefined>(() => loadBodyMetricsData()?.weight ?? userData?.weight);
   // const [showAIOverlay, setShowAIOverlay] = useState(false);
   const [hasCompletedSetup, setHasCompletedSetup] = useState(
     () => userData?.hasCompletedSetup ?? false
@@ -121,6 +140,12 @@ export default function App() {
 
   const handleSetGender = (newGender: string) => {
     setGender(newGender);
+    const savedMetrics = saveBodyMetricsData({
+      ...(loadBodyMetricsData() ?? {}),
+      gender: newGender,
+    });
+
+    setBodyMetrics(savedMetrics);
     setUserData((currentUser) => {
       if (!currentUser) {
         return currentUser;
@@ -135,6 +160,12 @@ export default function App() {
 
   const handleSetAge = (newAge: number) => {
     setAge(newAge);
+    const savedMetrics = saveBodyMetricsData({
+      ...(loadBodyMetricsData() ?? {}),
+      age: newAge,
+    });
+
+    setBodyMetrics(savedMetrics);
     setUserData((currentUser) => {
       if (!currentUser) {
         return currentUser;
@@ -149,6 +180,12 @@ export default function App() {
 
   const handleSetHeight = (newHeight: number) => {
     setHeight(newHeight);
+    const savedMetrics = saveBodyMetricsData({
+      ...(loadBodyMetricsData() ?? {}),
+      height: newHeight,
+    });
+
+    setBodyMetrics(savedMetrics);
     setUserData((currentUser) => {
       if (!currentUser) {
         return currentUser;
@@ -163,6 +200,12 @@ export default function App() {
 
   const handleSetWeight = (newWeight: number) => {
     setWeight(newWeight);
+    const savedMetrics = saveBodyMetricsData({
+      ...(loadBodyMetricsData() ?? {}),
+      weight: newWeight,
+    });
+
+    setBodyMetrics(savedMetrics);
     setUserData((currentUser) => {
       if (!currentUser) {
         return currentUser;
@@ -175,36 +218,109 @@ export default function App() {
     });
   };
 
-  const handleSaveBodyMetrics = (updates: { gender: string; height: number; weight: number }) => {
-    setGender(updates.gender);
-    setHeight(updates.height);
-    setWeight(updates.weight);
+  const handleSaveBodyMetrics = (updates: NewBodyMetricsData) => {
+    const savedMetrics = saveBodyMetricsData({
+      ...(loadBodyMetricsData() ?? {}),
+      ...updates,
+    });
+
+    setBodyMetrics(savedMetrics);
+    setGender(savedMetrics.gender ?? "");
+    setHeight(savedMetrics.height);
+    setWeight(savedMetrics.weight);
     setUserData((currentUser) => {
       if (!currentUser) {
         return currentUser;
       }
 
-      return updateUserData(updates) ?? {
+      return updateUserData({
+        gender: savedMetrics.gender,
+        height: savedMetrics.height,
+        weight: savedMetrics.weight,
+      }) ?? {
         ...currentUser,
-        ...updates,
+        gender: savedMetrics.gender,
+        height: savedMetrics.height,
+        weight: savedMetrics.weight,
       };
     });
   };
 
+  const handleSaveProfile = (profileUpdates: NewProfileData) => {
+    const savedProfile = saveProfileData(profileUpdates);
+
+    setUserName(savedProfile.name);
+    setUserEmail(savedProfile.email);
+    setUserPhone(savedProfile.phone ?? "");
+    setProfileImage(savedProfile.profileImage ?? "");
+    setUserData((currentUser) => {
+      if (!currentUser) {
+        return currentUser;
+      }
+
+      return updateUserData({
+        name: savedProfile.name,
+        email: savedProfile.email,
+      }) ?? {
+        ...currentUser,
+        name: savedProfile.name,
+        email: savedProfile.email,
+      };
+    });
+  };
+
+  const handleSaveWorkout = (workoutData: NewWorkoutData) => {
+    saveWorkoutData(workoutData);
+    setWorkouts(loadWorkoutList());
+  };
+
+  const handleDeleteWorkout = (workoutId: string) => {
+    deleteWorkoutData(workoutId);
+    setWorkouts(loadWorkoutList());
+    setCurrentWorkoutId(undefined);
+  };
+
+  const loadCurrentProfile = (): ProfileData => {
+    const savedProfile = loadProfileData();
+
+    return {
+      id: savedProfile?.id ?? userData?.id ?? userEmail,
+      name: savedProfile?.name ?? userName,
+      email: savedProfile?.email ?? userEmail,
+      phone: savedProfile?.phone ?? userPhone,
+      profileImage: savedProfile?.profileImage ?? profileImage,
+      updatedAt: savedProfile?.updatedAt ?? new Date().toISOString(),
+    };
+  };
+
   const handleSetActiveUser = (activeUser: UserData) => {
+    const savedProfile = loadProfileData();
+    const savedMetrics = loadBodyMetricsData();
+
     setUserData(activeUser);
-    setUserName(activeUser.name);
-    setUserEmail(activeUser.email);
-    setGender(activeUser.gender ?? "");
-    setAge(activeUser.age);
-    setHeight(activeUser.height);
-    setWeight(activeUser.weight);
+    setUserName(savedProfile?.name ?? activeUser.name);
+    setUserEmail(savedProfile?.email ?? activeUser.email);
+    setUserPhone(savedProfile?.phone ?? "");
+    setProfileImage(savedProfile?.profileImage ?? "");
+    setBodyMetrics(savedMetrics);
+    setGender(savedMetrics?.gender ?? activeUser.gender ?? "");
+    setAge(savedMetrics?.age ?? activeUser.age);
+    setHeight(savedMetrics?.height ?? activeUser.height);
+    setWeight(savedMetrics?.weight ?? activeUser.weight);
     setHasCompletedSetup(activeUser.hasCompletedSetup);
   };
 
   const handleSaveUser = (newUserData: NewUserData) => {
     const savedUser = saveUserData(newUserData);
+    const savedProfile = saveProfileData({
+      id: savedUser.id,
+      name: savedUser.name,
+      email: savedUser.email,
+    });
+
     handleSetActiveUser(savedUser);
+    setUserName(savedProfile.name);
+    setUserEmail(savedProfile.email);
   };
 
   const handleLogout = () => {
@@ -212,6 +328,9 @@ export default function App() {
     setUserData(null);
     setUserName("");
     setUserEmail("");
+    setUserPhone("");
+    setProfileImage("");
+    setBodyMetrics(null);
     setGender("");
     setAge(undefined);
     setHeight(undefined);
@@ -224,6 +343,9 @@ export default function App() {
   const handleOpenMotionDetect = () => {
     setCurrentScreen("motion-detect");   
   };
+
+  const getCurrentBodyMetrics = (): BodyMetricsData | null => loadBodyMetricsData() ?? bodyMetrics;
+  const getCurrentWorkouts = (): WorkoutData[] => loadWorkoutList();
 
   // Screen groups for bottom navigation visibility
   const mainScreens = ["home", "workouts", "progress", "profile"];
@@ -276,6 +398,8 @@ export default function App() {
           <ProfileScreen
             userName={userName}
             userEmail={userEmail}
+            userPhone={userPhone}
+            profileImage={profileImage}
             gender={gender}
             age={age}
             height={height}
@@ -286,9 +410,22 @@ export default function App() {
           />
         );
       case "edit-profile":
-        return <EditProfileScreen onNavigate={handleNavigate} />;
+        return (
+          <EditProfileScreen
+            onNavigate={handleNavigate}
+            profile={loadCurrentProfile()}
+            onSaveProfile={handleSaveProfile}
+          />
+        );
       case "metrics":
-        return <BodyMetricsScreen onNavigate={handleNavigate} gender={gender} />;
+        return (
+          <BodyMetricsScreen
+            onNavigate={handleNavigate}
+            gender={gender}
+            metrics={getCurrentBodyMetrics()}
+            onSaveMetrics={handleSaveBodyMetrics}
+          />
+        );
       case "metrics-edit":
         // return <BodyMetricsEditScreen onNavigate={handleNavigate} gender={gender} />;
       case "body-metrics-edit":
@@ -298,22 +435,48 @@ export default function App() {
             gender={gender}
             height={height}
             weight={weight}
-            onSetGender={handleSetGender}
+            metrics={getCurrentBodyMetrics()}
             onSaveMetrics={handleSaveBodyMetrics}
           />
         );
 
       // Workout section
       case "workouts":
-        return <WorkoutScreen onNavigate={handleNavigate} />;
+        return <WorkoutScreen onNavigate={handleNavigate} workouts={getCurrentWorkouts()} />;
       case "workout-detail":
-        return <WorkoutDetailScreen onNavigate={handleNavigate} workoutId={currentWorkoutId} />;
+        return (
+          <WorkoutDetailScreen
+            onNavigate={handleNavigate}
+            workoutId={currentWorkoutId}
+            workouts={getCurrentWorkouts()}
+          />
+        );
       case "create-workout":
-        return <CreateWorkoutScreen onNavigate={handleNavigate} />;
+        return (
+          <CreateWorkoutScreen
+            onNavigate={handleNavigate}
+            workouts={getCurrentWorkouts()}
+            onSaveWorkout={handleSaveWorkout}
+          />
+        );
       case "edit-workout":
-        return <EditWorkoutScreen onNavigate={handleNavigate} workoutId={currentWorkoutId} />;
+        return (
+          <EditWorkoutScreen
+            onNavigate={handleNavigate}
+            workoutId={currentWorkoutId}
+            workouts={getCurrentWorkouts()}
+            onSaveWorkout={handleSaveWorkout}
+            onDeleteWorkout={handleDeleteWorkout}
+          />
+        );
       case "selected-workout":
-        return <SelectedWorkoutScreen onNavigate={handleNavigate} />;
+        return (
+          <SelectedWorkoutScreen
+            onNavigate={handleNavigate}
+            workoutId={currentWorkoutId}
+            workouts={getCurrentWorkouts()}
+          />
+        );
       case "ai-workout":
         return <AIWorkoutScreen onNavigate={handleNavigate} />;
       case "warm-up":
@@ -331,7 +494,7 @@ export default function App() {
 
       // Progress section
       case "progress":
-        return <ProgressScreen onNavigate={handleNavigate} />;
+        return <ProgressScreen onNavigate={handleNavigate} bodyMetrics={getCurrentBodyMetrics()} />;
       case "achievements":
         return <AchievementsScreen onNavigate={handleNavigate} />;
       case "photo-capture":
@@ -339,7 +502,7 @@ export default function App() {
       case "loading-analysis":
         return <LoadingAnalysisScreen onNavigate={handleNavigate} />;
       case "metrics-update":
-        return <MetricsUpdateScreen onNavigate={handleNavigate} />;
+        return <MetricsUpdateScreen onNavigate={handleNavigate} bodyMetrics={getCurrentBodyMetrics()} />;
 
       // Settings section
       case "settings":

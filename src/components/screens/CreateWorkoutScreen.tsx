@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { ArrowLeft, Search, Plus, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ImageWithFallback } from '../figma/ImageWithFallback';
+import type { NewWorkoutData, WorkoutData, WorkoutExerciseData } from '../../lib/appDataStorage';
 
 interface CreateWorkoutScreenProps {
   onNavigate: (screen: string) => void;
+  workouts: WorkoutData[];
+  onSaveWorkout: (workout: NewWorkoutData) => void;
 }
 
-export function CreateWorkoutScreen({ onNavigate }: CreateWorkoutScreenProps) {
+export function CreateWorkoutScreen({ onNavigate, workouts, onSaveWorkout }: CreateWorkoutScreenProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [showAddExercisePopup, setShowAddExercisePopup] = useState(false);
@@ -15,6 +18,7 @@ export function CreateWorkoutScreen({ onNavigate }: CreateWorkoutScreenProps) {
   const [showWorkoutSelection, setShowWorkoutSelection] = useState(false);
   const [showNewWorkoutForm, setShowNewWorkoutForm] = useState(false);
   const [newWorkoutName, setNewWorkoutName] = useState('');
+  const [newWorkoutNameError, setNewWorkoutNameError] = useState('');
   const [reps, setReps] = useState(10);
   const [sets, setSets] = useState(3);
   const [weight, setWeight] = useState(60);
@@ -68,14 +72,7 @@ export function CreateWorkoutScreen({ onNavigate }: CreateWorkoutScreenProps) {
     { id: '8', name: 'Downward Dog', category: 'Yoga', equipment: 'Mat', difficulty: 'Beginner', image: 'https://images.unsplash.com/photo-1662386392891-688364c5a5d7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdHJlbmd0aCUyMHRyYWluaW5nJTIwZ3ltJTIwZXF1aXBtZW50fGVufDF8fHx8MTc2NDU2MzU1NXww&ixlib=rb-4.1.0&q=80&w=1080' },
   ];
 
-  const existingWorkouts = [
-    'Back Workout',
-    'Chest Workout',
-    'Legs Workout',
-    'My Morning Routine',
-    'Push Day',
-    'Pull Day',
-  ];
+  const existingWorkouts = workouts;
 
   const filteredExercises = exercises.filter(ex => {
     const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -103,20 +100,73 @@ export function CreateWorkoutScreen({ onNavigate }: CreateWorkoutScreenProps) {
     setShowWorkoutSelection(false);
     setShowNewWorkoutForm(false);
     setSelectedExercise(null);
+    setNewWorkoutNameError('');
   };
+
+  const buildWorkoutExercise = (): WorkoutExerciseData => ({
+    id: `${selectedExercise.id}-${Date.now()}`,
+    name: selectedExercise.name,
+    category: selectedExercise.category,
+    equipment: selectedExercise.equipment,
+    difficulty: selectedExercise.difficulty,
+    image: selectedExercise.image,
+    sets,
+    reps,
+    weight,
+    estimatedTime: `${Math.max(sets * 2, 6)} min`,
+  });
 
   const handleSaveToNewWorkout = () => {
-    if (newWorkoutName.trim()) {
-      // Save exercise to new workout
-      alert(`Created "${newWorkoutName}" and added ${selectedExercise.name}`);
-      closePopup();
-      setNewWorkoutName('');
+    const trimmedName = newWorkoutName.trim();
+
+    if (!trimmedName) {
+      setNewWorkoutNameError('Workout name is required.');
+      return;
     }
+
+    const exercisesToSave = [buildWorkoutExercise()];
+
+    onSaveWorkout({
+      id: `user-${Date.now()}`,
+      name: trimmedName,
+      type: 'user',
+      exercises: exercisesToSave,
+      duration: `${Math.max(exercisesToSave.length * 8, 8)} min`,
+      lastEdited: 'Today',
+    });
+    closePopup();
+    setNewWorkoutName('');
+    onNavigate('workouts');
   };
 
-  const handleSaveToExisting = (workoutName: string) => {
-    alert(`Added ${selectedExercise.name} to ${workoutName}`);
+  const handleSaveToExisting = (workout: WorkoutData) => {
+    const nextExercise = buildWorkoutExercise();
+    const existingExerciseIndex = workout.exercises.findIndex(
+      (exercise) => exercise.name.toLowerCase() === selectedExercise.name.toLowerCase()
+    );
+    const nextExercises =
+      existingExerciseIndex >= 0
+        ? workout.exercises.map((exercise, index) =>
+            index === existingExerciseIndex
+              ? {
+                  ...exercise,
+                  sets,
+                  reps,
+                  weight,
+                  estimatedTime: nextExercise.estimatedTime,
+                }
+              : exercise
+          )
+        : [...workout.exercises, nextExercise];
+
+    onSaveWorkout({
+      ...workout,
+      exercises: nextExercises,
+      duration: `${Math.max(nextExercises.length * 8, 8)} min`,
+      lastEdited: 'Today',
+    });
     closePopup();
+    onNavigate('workouts');
   };
 
   return (
@@ -408,15 +458,33 @@ export function CreateWorkoutScreen({ onNavigate }: CreateWorkoutScreenProps) {
                   <>
                     <h3 className="text-white mb-4">Select Workout</h3>
                     <div className="space-y-3 mb-6">
+                      {existingWorkouts.length === 0 && (
+                        <p className="text-white/60 text-sm">
+                          Create a workout first, then you can add more exercises to it.
+                        </p>
+                      )}
                       {existingWorkouts.map((workout) => (
-                        <button
-                          key={workout}
-                          onClick={() => handleSaveToExisting(workout)}
-                          className="w-full p-4 text-left rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 
-                                   text-white hover:border-[#92B8FF]/30 transition-all"
-                        >
-                          {workout}
-                        </button>
+                        (() => {
+                          const hasDuplicate = workout.exercises.some(
+                            (exercise) => exercise.name.toLowerCase() === selectedExercise?.name.toLowerCase()
+                          );
+
+                          return (
+                            <button
+                              key={workout.id}
+                              onClick={() => handleSaveToExisting(workout)}
+                              className="w-full p-4 text-left rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 
+                                       text-white hover:border-[#92B8FF]/30 transition-all"
+                            >
+                              <span className="block">{workout.name}</span>
+                              {hasDuplicate && (
+                                <span className="block text-[#AECEFF] text-xs mt-1">
+                                  Already added. Selecting this updates sets, reps, and weight.
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })()
                       ))}
                     </div>
                     <button
@@ -435,10 +503,16 @@ export function CreateWorkoutScreen({ onNavigate }: CreateWorkoutScreenProps) {
                         type="text"
                         placeholder="Enter workout name"
                         value={newWorkoutName}
-                        onChange={(e) => setNewWorkoutName(e.target.value)}
+                        onChange={(e) => {
+                          setNewWorkoutName(e.target.value);
+                          setNewWorkoutNameError('');
+                        }}
                         className="w-full px-4 py-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 
                                  text-white placeholder-white/40 focus:outline-none focus:border-[#92B8FF]/50 transition-all"
                       />
+                      {newWorkoutNameError && (
+                        <p className="text-red-300 text-sm mt-2">{newWorkoutNameError}</p>
+                      )}
                     </div>
                     <div className="space-y-3">
                       <button
