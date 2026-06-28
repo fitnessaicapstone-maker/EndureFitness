@@ -1,35 +1,63 @@
 // MotionDetectScreen.tsx
 
+import { useMemo } from "react";
+
+import type { WorkoutData } from "../../lib/appDataStorage";
 import PoseDetector from "../vision/PoseDetector";
+import {
+  DEFAULT_WORKOUT_PLAN,
+  type MotionExercisePlan,
+} from "../vision/WorkoutEngine";
+
 interface MotionDetectScreenProps {
   onNavigate: (screen: string, workoutId?: string) => void;
+  workoutId?: string;
+  workouts: WorkoutData[];
 }
 
-export function MotionDetectScreen({ onNavigate }: MotionDetectScreenProps) {
+const toMotionWorkoutPlan = (workout?: WorkoutData): MotionExercisePlan[] => {
+  if (!workout || workout.exercises.length === 0) {
+    return DEFAULT_WORKOUT_PLAN;
+  }
+
+  return workout.exercises.map((exercise) => ({
+    name: exercise.name,
+    targetReps: Math.max(exercise.reps, 1),
+    targetSets: Math.max(exercise.sets, 1),
+  }));
+};
+
+export function MotionDetectScreen({
+  onNavigate,
+  workoutId,
+  workouts,
+}: MotionDetectScreenProps) {
+  const selectedWorkout = workouts.find((workout) => workout.id === workoutId);
+  const workoutPlan = useMemo(
+    () => toMotionWorkoutPlan(selectedWorkout),
+    [selectedWorkout]
+  );
+  const workoutName = selectedWorkout?.name ?? "Default Motion Detect Workout";
+
   return (
     <div className="min-h-screen bg-[#0a0d1a] text-white p-6">
-      <h1 className="text-2xl font-bold mb-2">Motion Detect</h1>
-      {/* <p className="text-white/70 mb-4"> */}
-      {/* Motion detection screen coming soon... */}
-      {/* </p> */}
-      {/* Camera area: 640x480 fixed size */}
-      <div
-        className="mx-auto mb-4"
-        style={{
-          width: "90vw", // 90% of screen width
-          maxWidth: "960px", // prevents it from becoming huge on desktop
-          aspectRatio: "16 / 9", // full-body friendly
-        }}
-      >
-        <PoseDetector />
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold">Motion Detect</h1>
+        <button
+          className="rounded-xl bg-white/10 px-4 py-2 text-sm text-white transition-colors hover:bg-white/15"
+          onClick={() => onNavigate("home")}
+        >
+          Back to Home
+        </button>
       </div>
 
-      <button
-        className="px-4 py-2 rounded-xl bg-white/10 border border-white/20"
-        onClick={() => onNavigate("home")}
-      >
-        Back to Home
-      </button>
+      <div className="mx-auto mb-4 w-full">
+        <PoseDetector
+          workoutPlan={workoutPlan}
+          workoutName={workoutName}
+          onBackHome={() => onNavigate("home")}
+        />
+      </div>
     </div>
   );
 }

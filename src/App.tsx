@@ -341,6 +341,7 @@ export default function App() {
   };
 
   const handleOpenMotionDetect = () => {
+    setCurrentWorkoutId(undefined);
     setCurrentScreen("motion-detect");   
   };
 
@@ -521,7 +522,13 @@ export default function App() {
         return <AIChatScreen onNavigate={handleNavigate} />;
 
       case "motion-detect":
-        return <MotionDetectScreen onNavigate={handleNavigate} />;
+        return (
+          <MotionDetectScreen
+            onNavigate={handleNavigate}
+            workoutId={currentWorkoutId}
+            workouts={getCurrentWorkouts()}
+          />
+        );
 
       // Default fallback
       default:

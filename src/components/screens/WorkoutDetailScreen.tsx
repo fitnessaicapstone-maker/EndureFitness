@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { ArrowLeft, Edit, Flame, Clock, Zap, Plus, X, Play } from 'lucide-react';
+import { ArrowLeft, Camera, Edit, Flame, Clock, Zap, Plus, X, Play } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { WorkoutData } from '../../lib/appDataStorage';
 
 interface WorkoutDetailScreenProps {
-  onNavigate: (screen: string) => void;
+  onNavigate: (screen: string, workoutId?: string) => void;
   workoutId?: string;
   workouts: WorkoutData[];
 }
@@ -166,7 +166,19 @@ export function WorkoutDetailScreen({ onNavigate, workoutId, workouts }: Workout
       </div>
 
       {/* Floating Start Workout Button */}
-      <div className="fixed bottom-6 left-6 right-6 z-30">
+      <div className="fixed bottom-6 left-6 right-6 z-30 space-y-3">
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => onNavigate('motion-detect', workoutId)}
+          className="w-full py-4 rounded-2xl bg-white/5 
+                   text-white shadow-lg shadow-black/10 hover:bg-white/10 
+                   transition-all flex items-center justify-center gap-2 backdrop-blur-xl 
+                   border border-white/15"
+        >
+          <Camera className="w-5 h-5" />
+          <span>Track with Motion Detect</span>
+        </motion.button>
+
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={() => onNavigate('selected-workout', workoutId)}

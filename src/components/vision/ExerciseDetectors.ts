@@ -1,12 +1,13 @@
-import * as poseDetection from "@tensorflow-models/pose-detection";
-import { getAngle} from "./PoseMath";
-import React from "react";
+import type * as poseDetection from "@tensorflow-models/pose-detection";
+import type { RefObject } from "react";
+
+import { getAngle } from "./PoseMath";
 
 export type RepState = "up" | "down";
 
 interface DetectorProps {
   keypoints: poseDetection.Keypoint[];
-  repState: React.RefObject<RepState>;
+  repState: RefObject<RepState>;
   onRep: () => void;
   setFeedback: (msg: string) => void;
 }
@@ -166,6 +167,5 @@ export function detectSitup({
     setFeedback("⬆️ Sit up higher");
   }
 }
-
 
 

@@ -56,6 +56,35 @@ export interface WorkoutData {
   updatedAt: string;
 }
 
+export interface MotionDetectExerciseResultData {
+  name: string;
+  targetReps: number;
+  targetSets: number;
+  setsCompleted: number;
+  repsCompleted: number;
+  formWarningOccurred: boolean;
+  unsupported?: boolean;
+}
+
+export interface MotionDetectWorkoutSessionData {
+  id: string;
+  source: "motion-detect";
+  workoutName: string;
+  startedAt: string;
+  completedAt: string;
+  exercises: MotionDetectExerciseResultData[];
+  formWarningOccurred: boolean;
+}
+
+export type NewMotionDetectWorkoutSessionData = Omit<
+  MotionDetectWorkoutSessionData,
+  "id" | "source" | "completedAt"
+> & {
+  id?: string;
+  source?: "motion-detect";
+  completedAt?: string;
+};
+
 export type NewProfileData = Omit<ProfileData, "updatedAt"> & {
   updatedAt?: string;
 };
@@ -72,6 +101,7 @@ export type NewWorkoutData = Omit<WorkoutData, "createdAt" | "updatedAt"> & {
 const PROFILE_STORAGE_KEY = "endureFitness.profile";
 const BODY_METRICS_STORAGE_KEY = "endureFitness.bodyMetrics";
 const WORKOUTS_STORAGE_KEY = "endureFitness.workouts";
+const MOTION_DETECT_HISTORY_STORAGE_KEY = "endureFitness.motionDetectHistory";
 
 const canUseLocalStorage = () =>
   typeof window !== "undefined" && typeof window.localStorage !== "undefined";
@@ -251,4 +281,34 @@ export function deleteWorkoutData(workoutId: string): WorkoutData[] {
 
 export function deleteWorkoutList() {
   removeStorageValue(WORKOUTS_STORAGE_KEY);
+}
+
+export function loadMotionDetectWorkoutSessions(): MotionDetectWorkoutSessionData[] {
+  return (
+    readStorageValue<MotionDetectWorkoutSessionData[]>(
+      MOTION_DETECT_HISTORY_STORAGE_KEY
+    ) ?? []
+  );
+}
+
+export function saveMotionDetectWorkoutSession(
+  sessionData: NewMotionDetectWorkoutSessionData
+): MotionDetectWorkoutSessionData {
+  const completedAt = sessionData.completedAt ?? nowIso();
+  const savedSession: MotionDetectWorkoutSessionData = {
+    ...sessionData,
+    id: sessionData.id ?? `motion-${completedAt}`,
+    source: "motion-detect",
+    completedAt,
+  };
+
+  const nextSessions = [savedSession, ...loadMotionDetectWorkoutSessions()];
+
+  writeStorageValue(MOTION_DETECT_HISTORY_STORAGE_KEY, nextSessions);
+
+  return savedSession;
+}
+
+export function deleteMotionDetectWorkoutSessions() {
+  removeStorageValue(MOTION_DETECT_HISTORY_STORAGE_KEY);
 }
