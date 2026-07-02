@@ -76,6 +76,20 @@ export interface MotionDetectWorkoutSessionData {
   formWarningOccurred: boolean;
 }
 
+export type MetricsPhotoView = "front" | "back" | "left" | "right";
+
+export interface MetricsPhotoData {
+  view: MetricsPhotoView;
+  imageDataUrl: string;
+  capturedAt: string;
+}
+
+export interface MetricsPhotoSessionData {
+  id: string;
+  createdAt: string;
+  photos: MetricsPhotoData[];
+}
+
 export type NewMotionDetectWorkoutSessionData = Omit<
   MotionDetectWorkoutSessionData,
   "id" | "source" | "completedAt"
@@ -102,6 +116,7 @@ const PROFILE_STORAGE_KEY = "endureFitness.profile";
 const BODY_METRICS_STORAGE_KEY = "endureFitness.bodyMetrics";
 const WORKOUTS_STORAGE_KEY = "endureFitness.workouts";
 const MOTION_DETECT_HISTORY_STORAGE_KEY = "endureFitness.motionDetectHistory";
+const METRICS_PHOTO_LIBRARY_STORAGE_KEY = "endureFitness.metricsPhotoLibrary";
 
 const canUseLocalStorage = () =>
   typeof window !== "undefined" && typeof window.localStorage !== "undefined";
@@ -311,4 +326,34 @@ export function saveMotionDetectWorkoutSession(
 
 export function deleteMotionDetectWorkoutSessions() {
   removeStorageValue(MOTION_DETECT_HISTORY_STORAGE_KEY);
+}
+
+export function loadMetricsPhotoSessions(): MetricsPhotoSessionData[] {
+  return readStorageValue<MetricsPhotoSessionData[]>(METRICS_PHOTO_LIBRARY_STORAGE_KEY) ?? [];
+}
+
+export function saveMetricsPhotoSession(
+  photosByView: Record<MetricsPhotoView, string>
+): MetricsPhotoSessionData {
+  const timestamp = nowIso();
+  const views: MetricsPhotoView[] = ["front", "back", "left", "right"];
+  const savedSession: MetricsPhotoSessionData = {
+    id: `metrics-photos-${timestamp}`,
+    createdAt: timestamp,
+    photos: views.map((view) => ({
+      view,
+      imageDataUrl: photosByView[view],
+      capturedAt: timestamp,
+    })),
+  };
+
+  const nextSessions = [savedSession, ...loadMetricsPhotoSessions()].slice(0, 12);
+
+  writeStorageValue(METRICS_PHOTO_LIBRARY_STORAGE_KEY, nextSessions);
+
+  return savedSession;
+}
+
+export function deleteMetricsPhotoSessions() {
+  removeStorageValue(METRICS_PHOTO_LIBRARY_STORAGE_KEY);
 }

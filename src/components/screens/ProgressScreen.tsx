@@ -10,7 +10,7 @@ export function ProgressScreen({
   onNavigate?: (screen: string) => void;
   bodyMetrics?: BodyMetricsData | null;
 }) {
-  const [activeTab, setActiveTab] = useState<'today' | 'week' | 'month' | 'year' | 'alltime'>('today');
+  const [activeTab, setActiveTab] = useState<'today' | 'week' | 'month' | 'year' | 'alltime'>('week');
   const currentWeight = bodyMetrics?.weight ?? 78;
 
   // Mock data for weight progress
@@ -150,20 +150,30 @@ export function ProgressScreen({
           <h1 className="text-2xl text-white mb-6">Progress</h1>
           
           {/* Tab Navigation */}
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
-            {tabs.map((tab) => (
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-2">
+            <div className="flex flex-1 min-w-[260px] gap-2 overflow-x-auto scrollbar-hide">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-300 ${
+                    activeTab === tab.id
+                      ? 'bg-gradient-to-r from-[#92B8FF] to-[#AECEFF] text-white shadow-lg shadow-[#92B8FF]/30'
+                      : 'bg-white/5 text-white/60 border border-white/10 backdrop-blur-xl hover:bg-white/10'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            {onNavigate && (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-300 ${
-                  activeTab === tab.id
-                    ? 'bg-gradient-to-r from-[#92B8FF] to-[#AECEFF] text-white shadow-lg shadow-[#92B8FF]/30'
-                    : 'bg-white/5 text-white/60 border border-white/10 backdrop-blur-xl hover:bg-white/10'
-                }`}
+                onClick={() => onNavigate('metrics-library')}
+                className="px-5 py-2.5 rounded-xl whitespace-nowrap transition-all duration-300 bg-white/5 text-white/60 border border-white/10 backdrop-blur-xl hover:bg-white/10"
               >
-                {tab.label}
+                Metrics Library
               </button>
-            ))}
+            )}
           </div>
         </div>
 

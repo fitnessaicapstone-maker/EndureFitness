@@ -39,8 +39,8 @@ import { BodyMetricsEditScreen } from "./components/screens/BodyMetricsEditScree
 import { ProgressScreen } from "./components/screens/ProgressScreen";
 import { AchievementsScreen } from "./components/screens/AchievementsScreen";
 import { PhotoCaptureScreen } from "./components/screens/PhotoCaptureScreen";
-import { LoadingAnalysisScreen } from "./components/screens/LoadingAnalysisScreen";
 import { MetricsUpdateScreen } from "./components/screens/MetricsUpdateScreen";
+import { MetricsLibraryScreen } from "./components/screens/MetricsLibraryScreen";
 
 // Settings screens
 import { SettingsScreen } from "./components/screens/SettingsScreen";
@@ -500,10 +500,10 @@ export default function App() {
         return <AchievementsScreen onNavigate={handleNavigate} />;
       case "photo-capture":
         return <PhotoCaptureScreen onNavigate={handleNavigate} />;
-      case "loading-analysis":
-        return <LoadingAnalysisScreen onNavigate={handleNavigate} />;
       case "metrics-update":
         return <MetricsUpdateScreen onNavigate={handleNavigate} bodyMetrics={getCurrentBodyMetrics()} />;
+      case "metrics-library":
+        return <MetricsLibraryScreen onNavigate={handleNavigate} />;
 
       // Settings section
       case "settings":

@@ -66,7 +66,7 @@ async function callFitnessAI(userMessage: string): Promise<string> {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'gpt-5-nano',
+        model: 'gpt-5.4-mini',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: userMessage },
